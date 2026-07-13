@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerApp — Google Africa Applied AI Lab 2026</title>
+<style>
+  :root {
+    --teal-dark: #062E30;
+    --teal: #0D7377;
+    --teal-light: #1D9E75;
+    --teal-pale: #9FE1CB;
+    --purple: #534AB7;
+    --purple-light: #7F77DD;
+    --crimson: #A32D2D;
+    --amber: #BA7517;
+    --amber-light: #FAC775;
+    --text: #1A1A2E;
+    --white: #FFFFFF;
+    --grey: #F5F5F5;
+    --mid: #666680;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0a;
+    color: var(--white);
+    height: 100vh; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* DECK CONTAINER */
+  .deck {
+    width: 100vw; height: 100vh;
+    position: relative; overflow: hidden;
+  }
+
+  /* SLIDES */
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 4rem 6rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateX(40px);
+    overflow: hidden;
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all;
+    transform: translateX(0);
+  }
+  .slide.prev {
+    opacity: 0; transform: translateX(-40px);
+  }
+
+  /* SLIDE BACKGROUNDS */
+  .bg-teal    { background: var(--teal-dark); }
+  .bg-dark    { background: #0a0e0f; }
+  .bg-purple  { background: #0d0b2a; }
+  .bg-crimson { background: #1a0606; }
+  .bg-amber   { background: #100a00; }
+  .bg-grey    { background: #0f1010; }
+
+  /* DOODLE OVERLAY */
+  .doodle {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='12' fill='none' stroke='%239FE1CB' stroke-width='1'/%3E%3Cpath d='M40 28L40 16M52 40L64 40M28 40L16 40M40 52L40 64' stroke='%239FE1CB' stroke-width='0.8' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-size: 80px 80px;
+  }
+
+  /* NAVIGATION */
+  .nav-bar {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 1rem; z-index: 100;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 40px; padding: 0.6rem 1.25rem;
+  }
+  .nav-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+    color: var(--white); font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.2); }
+  .nav-dots { display: flex; gap: 0.4rem; }
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .nav-dot.active { background: var(--teal-pale); transform: scale(1.3); }
+  .slide-counter {
+    font-size: 0.75rem; color: rgba(255,255,255,0.4);
+    font-variant-numeric: tabular-nums; min-width: 36px; text-align: center;
+  }
+  .key-hint {
+    position: fixed; bottom: 2rem; right: 2rem;
+    font-size: 0.7rem; color: rgba(255,255,255,0.2);
+    z-index: 100;
+  }
+
+  /* TYPOGRAPHY */
+  .slide-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .slide-label::before {
+    content: ''; width: 24px; height: 2px;
+    background: currentColor; display: inline-block;
+  }
+  .slide-title {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700; line-height: 1.15;
+    letter-spacing: -0.03em; margin-bottom: 1rem;
+  }
+  .slide-sub {
+    font-size: 1.1rem; color: rgba(255,255,255,0.6);
+    line-height: 1.7; max-width: 640px;
+  }
+  .accent { color: var(--teal-pale); }
+  .accent-amber { color: var(--amber-light); }
+  .accent-crimson { color: #ff6b6b; }
+  .accent-purple { color: var(--purple-light); }
+
+  /* LAYOUTS */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; flex: 1; align-items: center;
+  }
+  .split-3 {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem; margin-top: 2.5rem;
+  }
+  .col { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* CARDS */
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 1.5rem;
+  }
+  .card-icon { font-size: 1.75rem; margin-bottom: 0.75rem; display: block; }
+  .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .card p { font-size: 0.8rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+  .card-tag {
+    display: inline-block; margin-top: 0.6rem;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 4px;
+  }
+
+  /* STAT BLOCKS */
+  .stat-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem; margin-top: 2.5rem;
+  }
+  .stat-block { text-align: center; padding: 1.5rem 1rem; }
+  .stat-num {
+    font-size: 2.4rem; font-weight: 700; line-height: 1;
+    margin-bottom: 0.5rem; display: block;
+  }
+  .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* TIMELINE */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl { display: flex; gap: 1rem; padding-bottom: 1.25rem;
+    border-left: 2px solid rgba(255,255,255,0.15);
+    padding-left: 1.25rem; margin-left: 0.5rem; position: relative; }
+  .tl::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--teal-pale);
+    position: absolute; left: -5px; top: 5px;
+  }
+  .tl-time {
+    font-size: 0.65rem; font-weight: 700; color: var(--teal-pale);
+    font-family: monospace; min-width: 52px; padding-top: 2px;
+  }
+  .tl-body h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; }
+  .tl-body p { font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* MODEL BADGES */
+  .model-badge {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.2rem 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;
+  }
+  .gemini { background: rgba(83,74,183,0.25); color: var(--purple-light); border: 1px solid rgba(83,74,183,0.4); }
+  .gemma  { background: rgba(13,115,119,0.25); color: var(--teal-pale); border: 1px solid rgba(13,115,119,0.4); }
+  .veo    { background: rgba(186,117,23,0.25); color: var(--amber-light); border: 1px solid rgba(186,117,23,0.4); }
+
+  /* PHONE MOCK */
+  .phone-mock {
+    width: 200px; height: 400px; border-radius: 30px;
+    background: var(--crimson);
+    border: 2.5px solid rgba(255,255,255,0.12);
+    padding: 1.5rem 1.25rem;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    position: relative; overflow: hidden;
+    box-shadow: 0 24px 64px rgba(163,45,45,0.4);
+  }
+  .phone-mock::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 35%, rgba(255,80,80,0.15) 0%, transparent 65%);
+  }
+  .pm-notch { width: 60px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.15); }
+  .pm-label { font-size: 0.55rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+  .pm-name { font-size: 1rem; font-weight: 700; text-align: center; }
+  .pm-pulse {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; position: relative;
+  }
+  .pm-pulse::before, .pm-pulse::after {
+    content: ''; position: absolute; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: pulse 2s infinite;
+  }
+  .pm-pulse::before { width: 96px; height: 96px; }
+  .pm-pulse::after { width: 112px; height: 112px; animation-delay: 0.5s; }
+  @keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    100% { transform: scale(1.1); opacity: 0; }
+  }
+  .pm-contacts { width: 100%; display: flex; flex-direction: column; gap: 0.35rem; }
+  .pm-contact {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: rgba(255,255,255,0.1); border-radius: 6px; padding: 0.35rem 0.5rem;
+  }
+  .pm-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; }
+  .pm-cname { font-size: 0.6rem; font-weight: 500; flex: 1; }
+  .pm-status { font-size: 0.55rem; color: rgba(255,255,255,0.55); }
+
+  /* HERWORLD TILES */
+  .hw-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 1rem; margin-top: 2rem;
+  }
+  .hw-tile {
+    background: rgba(186,117,23,0.08);
+    border: 1px solid rgba(186,117,23,0.2);
+    border-radius: 10px; padding: 1.25rem 1rem;
+    text-align: center; position: relative;
+  }
+  .hw-tile-icon { font-size: 1.6rem; display: block; margin-bottom: 0.5rem; }
+  .hw-tile-name { font-size: 0.8rem; font-weight: 600; color: var(--amber-light); }
+  .hw-lock {
+    position: absolute; top: 0.5rem; right: 0.6rem;
+    font-size: 0.65rem; opacity: 0.4;
+  }
+
+  /* QUOTE */
+  .quote-block {
+    border-left: 3px solid var(--teal-pale);
+    padding: 1.25rem 1.75rem;
+    background: rgba(159,225,203,0.05);
+    border-radius: 0 10px 10px 0;
+  }
+  .quote-text {
+    font-size: 1.05rem; line-height: 1.8; font-style: italic;
+    color: rgba(255,255,255,0.8);
+  }
+  .quote-author { margin-top: 1rem; font-size: 0.85rem; font-weight: 600; color: var(--teal-pale); }
+  .quote-role { font-size: 0.75rem; color: rgba(255,255,255,0.35); }
+
+  /* ASK BLOCKS */
+  .ask-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; margin-top: 2rem;
+  }
+  .ask-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(159,225,203,0.2);
+    border-radius: 12px; padding: 1.5rem;
+  }
+  .ask-card h3 { font-size: 0.9rem; font-weight: 600; color: var(--teal-pale); margin-bottom: 0.5rem; }
+  .ask-card p { font-size: 0.82rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 1.5rem; }
+  .progress-item { margin-bottom: 1rem; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; margin-bottom: 0.4rem;
+  }
+  .progress-label span:first-child { color: rgba(255,255,255,0.7); }
+  .progress-label span:last-child { color: var(--teal-pale); font-weight: 600; }
+  .progress-bar { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--teal-light); }
+
+  /* SLIDE 1 — COVER */
+  .cover-content {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    height: 100%;
+  }
+  .cover-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(159,225,203,0.1);
+    border: 1px solid rgba(159,225,203,0.25);
+    color: var(--teal-pale); padding: 0.35rem 0.9rem;
+    border-radius: 20px; font-size: 0.75rem; font-weight: 500;
+    margin-bottom: 2rem; letter-spacing: 0.04em;
+  }
+  .cover-title {
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 700; letter-spacing: -0.04em;
+    line-height: 1.05; margin-bottom: 1.5rem;
+  }
+  .cover-tagline {
+    font-size: 1.15rem; color: rgba(255,255,255,0.55);
+    max-width: 520px; line-height: 1.7; margin-bottom: 3rem;
+    font-style: italic;
+  }
+  .cover-meta {
+    display: flex; gap: 2.5rem; align-items: center;
+  }
+  .cover-meta-item { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+  .cover-meta-item strong { color: rgba(255,255,255,0.7); display: block; font-size: 0.9rem; }
+  .cover-graphic {
+    position: absolute; right: 4rem; top: 50%; transform: translateY(-50%);
+    opacity: 0.12; font-size: 18rem; line-height: 1; pointer-events: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: COVER -->
+  <div class="slide bg-teal active" id="slide-1">
+    <div class="doodle"></div>
+    <div class="cover-graphic">🛡️</div>
+    <div class="cover-content">
+      <div class="cover-badge">Google Africa Applied AI Lab 2026</div>
+      <h1 class="cover-title">Her<span class="accent">App</span></h1>
+      <p class="cover-tagline">Real-time personal safety for African women.<br>Built offline-first. Powered by AI. Built to scale.</p>
+      <div class="cover-meta">
+        <div class="cover-meta-item">
+          <strong>Nicole Owili</strong>
+          Founder & CEO
+        </div>
+        <div class="cover-meta-item">
+          <strong>HerApp Technologies</strong>
+          Nairobi, Kenya
+        </div>
+        <div class="cover-meta-item">
+          <strong>Stage</strong>
+          Pre-seed
+        </div>
+        <div class="cover-meta-item">
+          <strong>Deadline</strong>
+          August 31, 2026
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <div class="slide bg-crimson" id="slide-2">
+    <div class="slide-label" style="color: #ff9999;">The problem</div>
+    <h2 class="slide-title" style="font-size:clamp(1.6rem,3vw,2.4rem);">GBV is a societal problem.<br><span class="accent-crimson">Created by society. Solvable by society.</span></h2>
+    <p class="slide-sub" style="font-size:0.9rem; margin-bottom:1rem;">The laws exist. The policies exist. Enforcement is the weakest link. HerApp creates accountability structures that make inaction visible — timestamped alerts, documented patterns, and an evidence trail the justice system cannot look away from.</p>
+    <div class="stat-row" style="grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-top:1rem;">
+      <div class="stat-block" style="background: rgba(163,45,45,0.3); border-radius:10px; padding:1rem 0.75rem;">
+        <span class="stat-num" style="color:#ff9999; font-size:2rem;">170</span>
+        <div class="stat-label">Women killed in Kenya in 2024 — the deadliest year on record. One every other day.</div>
+      </div>
+      <div class="stat-block" style="background: rgba(163,45,45,0.3); border-radius:10px; padding:1rem 0.75rem;">
+        <span class="stat-num" style="color:#ff9999; font-size:2rem;">34%</span>
+        <div class="stat-label">Of Kenyan women have experienced physical violence since age 15. Over 40% from an intimate partner.</div>
+      </div>
+      <div class="stat-block" style="background: rgba(163,45,45,0.3); border-radius:10px; padding:1rem 0.75rem;">
+        <span class="stat-num" style="color:#ff9999; font-size:2rem;">72%</span>
+        <div class="stat-label">Of femicides happen inside the victim's home. The danger is rarely a stranger.</div>
+      </div>
+      <div class="stat-block" style="background: rgba(163,45,45,0.3); border-radius:10px; padding:1rem 0.75rem;">
+        <span class="stat-num" style="color:#ff9999; font-size:2rem;">4 yrs</span>
+        <div class="stat-label">Average wait for a femicide verdict. Laws exist. Execution remains the weakest link.</div>
+      </div>
+    </div>
+    <div style="margin-top:1rem; display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem;">
+      <div style="background:rgba(163,45,45,0.2); border-radius:10px; padding:0.875rem 1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:#ff9999;">500+</div>
+        <div style="font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.5;">Women murdered by intimate partners in Kenya 2016–2023 — Africa Data Hub</div>
+      </div>
+      <div style="background:rgba(163,45,45,0.2); border-radius:10px; padding:0.875rem 1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:#ff9999;">13/47</div>
+        <div style="font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.5;">Kenyan counties with an operational GBV Recovery Centre by 2023 — NGEC</div>
+      </div>
+      <div style="background:rgba(163,45,45,0.2); border-radius:10px; padding:0.875rem 1rem;">
+        <div style="font-size:1.4rem; font-weight:700; color:#ff9999;">90%</div>
+        <div style="font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.5;">Of Nairobi university students have witnessed technology-facilitated GBV — UNFPA 2024</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: SOLUTION -->
+  <div class="slide bg-teal" id="slide-3">
+    <div class="doodle"></div>
+    <div class="split">
+      <div class="col">
+        <div class="slide-label" style="color: var(--teal-pale);">The solution</div>
+        <h2 class="slide-title">One hold.<br><span class="accent">Half a second.</span><br>She's never alone.</h2>
+        <p class="slide-sub">HerApp is a real-time personal safety ecosystem — combining a sub-500ms emergency alert system, community AI intelligence, live journey tracking, and a lock screen emergency profile that gives paramedics everything they need without unlocking the phone.</p>
+        <div style="margin-top:1.5rem; padding: 1rem 1.25rem; background: rgba(159,225,203,0.1); border-radius: 10px; border: 1px solid rgba(159,225,203,0.2);">
+          <div style="font-size:0.7rem; color: var(--teal-pale); font-weight:700; letter-spacing:0.1em; margin-bottom:0.4rem;">CORE PROMISE</div>
+          <div style="font-size:0.95rem; font-style:italic; color:rgba(255,255,255,0.85); line-height:1.6;">Because safety shouldn't depend on a good signal — and it shouldn't depend on where you live.</div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:center; align-items:center;">
+        <div class="phone-mock">
+          <div class="pm-notch"></div>
+          <div style="text-align:center;">
+            <div class="pm-label">Emergency active</div>
+            <div class="pm-name">Amina Kariuki</div>
+          </div>
+          <div class="pm-pulse">🚨</div>
+          <div class="pm-contacts">
+            <div class="pm-contact">
+              <div class="pm-dot"></div>
+              <div class="pm-cname">Grace Njoki</div>
+              <div class="pm-status">En route ↗</div>
+            </div>
+            <div class="pm-contact">
+              <div class="pm-dot" style="background:#facc15;"></div>
+              <div class="pm-cname">Mama</div>
+              <div class="pm-status">Notified</div>
+            </div>
+            <div class="pm-contact">
+              <div class="pm-dot" style="background:#facc15;"></div>
+              <div class="pm-cname">Zawadi</div>
+              <div class="pm-status">Notified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: HOW IT WORKS -->
+  <div class="slide bg-dark" id="slide-4">
+    <div class="slide-label" style="color: var(--teal-pale);">How it works</div>
+    <h2 class="slide-title">From trigger to alert<br>in <span class="accent">under 500 milliseconds.</span></h2>
+    <div class="split" style="margin-top:1.5rem; gap:3rem;">
+      <div class="timeline">
+        <div class="tl">
+          <div class="tl-time">T+0ms</div>
+          <div class="tl-body"><h4>SOS confirmed</h4><p>Full crimson screen. Haptic feedback. State persisted locally — survives any crash or restart.</p></div>
+        </div>
+        <div class="tl">
+          <div class="tl-time">T+100ms</div>
+          <div class="tl-body"><h4>Four actions fire at once</h4><p>Location captured. Audio begins. Database updated. Alerts dispatched simultaneously.</p></div>
+        </div>
+        <div class="tl">
+          <div class="tl-time">T+200ms</div>
+          <div class="tl-body"><h4>FCM push sent</h4><p>Bypasses silent mode and Do Not Disturb on every contact's device.</p></div>
+        </div>
+        <div class="tl">
+          <div class="tl-time">T+300ms</div>
+          <div class="tl-body"><h4>SMS in parallel</h4><p>Not a fallback — fires simultaneously via Africa's Talking. Any phone, any network, 2G included.</p></div>
+        </div>
+        <div class="tl">
+          <div class="tl-time">T+30s</div>
+          <div class="tl-body"><h4>Evidence in the cloud</h4><p>First encrypted audio chunk uploaded. Even if the phone is seized — evidence is already preserved.</p></div>
+        </div>
+      </div>
+      <div class="col" style="gap:0.75rem;">
+        <div style="font-size:0.75rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:0.5rem;">Four SOS triggers</div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.2rem;">👆 2-second hold</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5);">Primary trigger — available on all screens at all times.</div>
+        </div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.2rem;">🔘 Volume button sequence</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5);">3x volume down — no screen touch needed. For dangerous moments.</div>
+        </div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.2rem;">🎤 Panic phrase — on device</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5);">Detected by Gemma AI. No internet. No server. Screen stays dark.</div>
+        </div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.2rem;">⌚ Journey timeout — automatic</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5);">Didn't arrive on time? SOS fires automatically on her behalf.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: AI INTEGRATION -->
+  <div class="slide bg-purple" id="slide-5">
+    <div class="slide-label" style="color: var(--purple-light);">AI integration</div>
+    <h2 class="slide-title" style="font-size:clamp(1.6rem,3vw,2.4rem);">Three Google models. <span class="accent-purple">Eight features.</span> AI that anticipates — from phone to wrist.</h2>
+    <div class="split-3" style="margin-top:1.25rem;">
+      <div class="col" style="gap:0.6rem;">
+        <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--purple-light); margin-bottom:0.25rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(127,119,221,0.3);">✦ Gemini — Cloud</div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(127,119,221,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Community pattern recognition</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Identifies danger zones before they become headlines.</div>
+        </div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(127,119,221,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Proactive resource intelligence</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Right hotline surfaced before she thinks to look.</div>
+        </div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(127,119,221,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Safe route intelligence</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Learns from every incident. Every journey safer than the last.</div>
+        </div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(127,119,221,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">HerScore + moderation assist</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Time-aware safety ratings. AI-assisted report review.</div>
+        </div>
+      </div>
+      <div class="col" style="gap:0.6rem;">
+        <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--teal-pale); margin-bottom:0.25rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(159,225,203,0.3);">◆ Gemma — On Device</div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(159,225,203,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Panic phrase detection — offline</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">No internet. No server. Zero latency. Fires SOS silently.</div>
+        </div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(159,225,203,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Trusted circle anomaly detection</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Detects surveillance behaviour in circle before she knows it.</div>
+        </div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(159,225,203,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Native Swahili processing</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Reaches women who would never use an English-only app.</div>
+        </div>
+      </div>
+      <div class="col" style="gap:0.6rem;">
+        <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber-light); margin-bottom:0.25rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(250,199,117,0.3);">▲ Veo — Cloud</div>
+        <div class="card" style="padding:0.8rem 1rem; border-color:rgba(250,199,117,0.2);">
+          <div style="font-size:0.78rem; font-weight:600; margin-bottom:0.2rem;">Emergency video understanding</div>
+          <div style="font-size:0.72rem; color:rgba(255,255,255,0.5); line-height:1.5;">Converts pre-recorded medical video to structured text for paramedics.</div>
+        </div>
+        <div style="margin-top:auto; padding:1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px;">
+          <div style="font-size:0.72rem; font-weight:600; color:rgba(255,255,255,0.7); margin-bottom:0.4rem;">Already Google-native</div>
+          <div style="font-size:0.68rem; color:rgba(255,255,255,0.4); line-height:1.6;">Firebase · Google Maps · FCM · Cloud Storage · Smile Identity. Adding Gemini and Gemma is a natural extension — not an integration project.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEARABLE INTEGRATION BANNER -->
+    <div style="margin-top:1.25rem; padding:1rem 1.5rem;
+      background: linear-gradient(135deg, rgba(186,117,23,0.12) 0%, rgba(83,74,183,0.12) 100%);
+      border: 1px solid rgba(250,199,117,0.25);
+      border-radius: 12px;
+      display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; align-items: center;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0.3rem; padding-right:1.25rem; border-right:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:1.6rem;">⌚</div>
+        <div style="font-size:0.6rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--amber-light); white-space:nowrap;">Phase 2</div>
+        <div style="font-size:0.58rem; color:rgba(255,255,255,0.35); white-space:nowrap;">Wear OS · Apple Watch</div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem;">
+        <div>
+          <div style="font-size:0.72rem; font-weight:600; color:var(--amber-light); margin-bottom:0.2rem;">⚡ Fifth SOS trigger</div>
+          <div style="font-size:0.65rem; color:rgba(255,255,255,0.45); line-height:1.5;">Crown hold fires full SOS even when phone is out of reach or seized.</div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem; font-weight:600; color:var(--amber-light); margin-bottom:0.2rem;">💓 Heart rate detection</div>
+          <div style="font-size:0.65rem; color:rgba(255,255,255,0.45); line-height:1.5;">Gemma monitors for sustained distress patterns. Silent check-in before SOS.</div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem; font-weight:600; color:var(--amber-light); margin-bottom:0.2rem;">📍 Location persistence</div>
+          <div style="font-size:0.65rem; color:rgba(255,255,255,0.45); line-height:1.5;">Watch continues broadcasting GPS if phone is taken. SOS never dies with the phone.</div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem; font-weight:600; color:var(--amber-light); margin-bottom:0.2rem;">🤫 Haptic stealth alerts</div>
+          <div style="font-size:0.65rem; color:rgba(255,255,255,0.45); line-height:1.5;">Contact responses arrive as discreet wrist vibrations. No screen needed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: KEY FEATURES -->
+  <div class="slide bg-dark" id="slide-6">
+    <div class="slide-label" style="color: var(--teal-pale);">Key features</div>
+    <h2 class="slide-title">Built for the real world.<br><span class="accent">Not the ideal one.</span></h2>
+    <div class="split-3" style="margin-top:1.5rem;">
+      <div class="card">
+        <span class="card-icon">🔒</span>
+        <h3>Panic PIN</h3>
+        <p>A PIN that looks like it unlocks the phone — while silently triggering SOS. For when an abuser demands her phone.</p>
+        <span class="card-tag" style="background:rgba(163,45,45,0.2);color:#ff9999;">Critical safety</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">📋</span>
+        <h3>Lock screen emergency profile</h3>
+        <p>Blood type, allergies, conditions — always on the lock screen. QR code any paramedic can scan. No unlock needed.</p>
+        <span class="card-tag" style="background:rgba(163,45,45,0.2);color:#ff9999;">Critical safety</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">⭐</span>
+        <h3>HerScore</h3>
+        <p>Community safety ratings for locations — time-aware. 4.6★ at noon. 2.4★ at midnight. Powered by Gemini.</p>
+        <span class="card-tag" style="background:rgba(83,74,183,0.2);color:var(--purple-light);">AI-powered</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗺️</span>
+        <h3>Community safety map</h3>
+        <p>Incident reports, danger zones, safe zones — built from women's experiences. Smarter with every woman who joins.</p>
+        <span class="card-tag" style="background:rgba(13,115,119,0.2);color:var(--teal-pale);">Community</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">📡</span>
+        <h3>Community SOS broadcast</h3>
+        <p>No circle? Broadcasts to verified users within 500m–2km. No woman is ever alone because she has no contacts.</p>
+        <span class="card-tag" style="background:rgba(13,115,119,0.2);color:var(--teal-pale);">Community</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">💬</span>
+        <h3>AI hotline guide</h3>
+        <p>Describe what you're going through — in English or Swahili. Gemini listens and finds the right resource immediately.</p>
+        <span class="card-tag" style="background:rgba(83,74,183,0.2);color:var(--purple-light);">AI-powered</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: MARKET -->
+  <div class="slide bg-dark" id="slide-7">
+    <div class="slide-label" style="color: var(--teal-pale);">Market opportunity</div>
+    <h2 class="slide-title">Kenya first.<br>East Africa second.<br><span class="accent">Every woman, always.</span></h2>
+    <div class="split" style="margin-top:1.5rem; gap:3rem;">
+      <div class="col">
+        <div class="progress-wrap">
+          <div class="progress-item">
+            <div class="progress-label"><span>Kenya — primary market</span><span>8M+ users</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:30%;"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>East Africa — secondary</span><span>45M+ users</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>Sub-Saharan Africa</span><span>200M+ users</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:85%;"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>Global vision</span><span>Every woman</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem; padding:1.25rem; background:rgba(159,225,203,0.06); border:1px solid rgba(159,225,203,0.15); border-radius:10px;">
+          <div style="font-size:0.75rem; color:var(--teal-pale); font-weight:600; margin-bottom:0.4rem;">Why Africa-first is a global advantage</div>
+          <div style="font-size:0.82rem; color:rgba(255,255,255,0.55); line-height:1.6;">An app that works on 2G in rural Kenya works everywhere. Most Western safety apps don't work without 4G. Offline-first is not a compromise — it is a competitive advantage.</div>
+        </div>
+      </div>
+      <div class="col" style="gap:1rem;">
+        <div style="font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.35);">Expansion model</div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.3rem;">🤝 Partner into new markets</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5); line-height:1.5;">Each city launched with an anchor organisation — a university women's group, NGO, or professional network. We don't enter markets cold. We partner into them.</div>
+        </div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.3rem;">🌍 City Lead Ambassadors</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5); line-height:1.5;">The most trusted woman in each city's HerApp community becomes the City Lead — coordinating local partnerships and driving growth. Expansion driven by community, not capital.</div>
+        </div>
+        <div class="card" style="padding:1rem 1.25rem;">
+          <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.3rem;">📍 Expansion sequence</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.5); line-height:1.5;">Nairobi → Mombasa → Kisumu → Kampala → Dar es Salaam → Accra. Each city launches only after the previous has a functioning Ambassador community.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: HERWORLD -->
+  <div class="slide bg-amber" id="slide-8">
+    <div class="slide-label" style="color: var(--amber-light);">Phase 2 — HerWorld</div>
+    <h2 class="slide-title">Safety infrastructure<br>becomes an <span class="accent-amber">economic platform.</span></h2>
+    <p class="slide-sub" style="margin-bottom:1.5rem;">HerWorld transforms HerApp from a safety tool into a full platform economy — every service provider verified through HerApp's trust infrastructure, every transaction building on the community we've already earned.</p>
+    <div class="hw-grid">
+      <div class="hw-tile">
+        <span class="hw-tile-icon">🚗</span>
+        <div class="hw-tile-name">HerRide</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+      <div class="hw-tile">
+        <span class="hw-tile-icon">🍽️</span>
+        <div class="hw-tile-name">Safe Eats</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+      <div class="hw-tile">
+        <span class="hw-tile-icon">🛍️</span>
+        <div class="hw-tile-name">HerMarket</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+      <div class="hw-tile">
+        <span class="hw-tile-icon">🤝</span>
+        <div class="hw-tile-name">Allies</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+      <div class="hw-tile">
+        <span class="hw-tile-icon">🏠</span>
+        <div class="hw-tile-name">Safe Houses</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+      <div class="hw-tile">
+        <span class="hw-tile-icon">💼</span>
+        <div class="hw-tile-name">HerCareer</div>
+        <div class="hw-lock">🔒</div>
+      </div>
+    </div>
+    <div style="margin-top:1.25rem; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:0.75rem;">
+      <div style="padding:0.875rem 1rem; background:rgba(186,117,23,0.1); border:1px solid rgba(186,117,23,0.2); border-radius:10px; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--amber-light);">Commission</div>
+        <div style="font-size:0.7rem; color:rgba(255,255,255,0.45); margin-top:0.25rem;">HerRide, HerMarket & HerCareer</div>
+      </div>
+      <div style="padding:0.875rem 1rem; background:rgba(186,117,23,0.1); border:1px solid rgba(186,117,23,0.2); border-radius:10px; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--amber-light);">Certification</div>
+        <div style="font-size:0.7rem; color:rgba(255,255,255,0.45); margin-top:0.25rem;">Annual fee for HerApp Certified businesses</div>
+      </div>
+      <div style="padding:0.875rem 1rem; background:rgba(186,117,23,0.1); border:1px solid rgba(186,117,23,0.2); border-radius:10px; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--amber-light);">Listing fee</div>
+        <div style="font-size:0.7rem; color:rgba(255,255,255,0.45); margin-top:0.25rem;">Businesses pay to be verified in HerScore database — no promotion, just accurate data</div>
+      </div>
+      <div style="padding:0.875rem 1rem; background:rgba(186,117,23,0.1); border:1px solid rgba(186,117,23,0.2); border-radius:10px; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--amber-light);">Data — NGOs</div>
+        <div style="font-size:0.7rem; color:rgba(255,255,255,0.45); margin-top:0.25rem;">Anonymised safety data for research partners</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: FOUNDER -->
+  <div class="slide bg-teal" id="slide-9">
+    <div class="doodle"></div>
+    <div class="split">
+      <div class="col">
+        <div class="slide-label" style="color:var(--teal-pale);">The founder</div>
+        <h2 class="slide-title">This started with a grandmother<br>catching the<br><span class="accent">early bus.</span></h2>
+        <div style="margin-top:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:rgba(255,255,255,0.06); border-radius:8px;">
+            <span style="font-size:1.1rem;">🎓</span>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.65);">Student, Jomo Kenyatta University of Agriculture and Technology</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:rgba(255,255,255,0.06); border-radius:8px;">
+            <span style="font-size:1.1rem;">📍</span>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.65);">Nairobi, Kenya — building for the community she lives in</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:rgba(255,255,255,0.06); border-radius:8px;">
+            <span style="font-size:1.1rem;">🛡️</span>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.65);">Personal connection to the problem — family, community, daily reality</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="quote-block">
+          <div class="quote-text">"I grew up in a household of women. My grandmother had to catch the early bus because money was tight — and because money was tight, safety had flown out of the window. Until the sun was out, I used to lie awake worrying about whether they had gotten to work safely. I was a little girl in primary school.
+          <br><br>
+          My aunt was held at gunpoint near our home. That is not a statistic. That is my family.
+          <br><br>
+          I am building HerApp because I know exactly what it feels like to be the person who cannot help — and I refuse to stay that person."</div>
+          <div class="quote-author">Nicole Owili</div>
+          <div class="quote-role">Founder & CEO, HerApp Technologies · Age 19</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: THE ASK -->
+  <div class="slide bg-teal" id="slide-10">
+    <div class="doodle"></div>
+    <div class="slide-label" style="color:var(--teal-pale);">The ask</div>
+    <h2 class="slide-title">What we'll build<br>together with <span class="accent">Google.</span></h2>
+    <div class="ask-grid">
+      <div class="ask-card">
+        <h3>Early model access</h3>
+        <p>Gemini for community pattern recognition, proactive resource intelligence, and safe route learning. Gemma for on-device panic phrase detection and Swahili processing. Veo for emergency video understanding. The AI Lab gives us access before anyone else — so HerApp launches with capabilities no competitor can match.</p>
+      </div>
+      <div class="ask-card">
+        <h3>Technical mentorship</h3>
+        <p>Direct access to Google Research and DeepMind engineers who can help us integrate these models correctly, efficiently, and safely. The difference between good AI integration and great AI integration is the guidance of people who built the models.</p>
+      </div>
+      <div class="ask-card">
+        <h3>What we bring</h3>
+        <p>A complete product specification — 16 sections, every feature, every edge case, every failure mode documented before a line of production code is written. A founder who has lived the problem. A community that is already waiting. And a product already built on Google's infrastructure.</p>
+      </div>
+      <div class="ask-card">
+        <h3>What we build by December 2026</h3>
+        <p>HerApp MVP live in Nairobi — SOS, journey tracking, community map, emergency profile, HerScore, AI hotline guide, all eight AI features integrated. First 10,000 women protected. Foundation laid for East Africa expansion in 2027.</p>
+      </div>
+    </div>
+    <div style="margin-top:1rem; text-align:center; padding:1rem; background:rgba(159,225,203,0.08); border:1px solid rgba(159,225,203,0.2); border-radius:12px;">
+      <div style="font-size:1rem; font-weight:600; color:var(--teal-pale); margin-bottom:0.25rem;">Because safety shouldn't depend on a good signal — and it shouldn't depend on where you live.</div>
+      <div style="font-size:0.8rem; color:rgba(255,255,255,0.35);">HerApp Technologies · Nairobi, Kenya · owilinicole@gmail.com</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-bar">
+  <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">←</button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" id="next-btn" onclick="navigate(1)">→</button>
+  <div class="slide-counter" id="counter">1 / 10</div>
+</div>
+<div class="key-hint">← → or click to navigate</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('nav-dots');
+  const counter = document.getElementById('counter');
+  let current = 0;
+  const total = slides.length;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dotsContainer.appendChild(dot);
+  });
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    slides[current].classList.add('prev');
+    setTimeout(() => slides[current].classList.remove('prev'), 400);
+
+    current = (index + total) % total;
+    slides[current].classList.add('active');
+
+    document.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    counter.textContent = `${current + 1} / ${total}`;
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  });
+
+  // Touch swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>
