@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerApp — Real-Time Personal Safety for African Women</title>
+<meta name="description" content="HerApp is a real-time personal safety ecosystem for African women. One hold of a button alerts your trusted circle, shares your live location, and begins recording evidence — in under half a second, with or without internet.">
+<style>
+  :root {
+    --teal-dark: #062E30;
+    --teal: #0D7377;
+    --teal-light: #1D9E75;
+    --teal-pale: #9FE1CB;
+    --teal-bg: #F0FAFA;
+    --purple: #534AB7;
+    --purple-light: #7F77DD;
+    --crimson: #A32D2D;
+    --amber: #BA7517;
+    --text: #1A1A2E;
+    --text-mid: #444466;
+    --text-light: #888899;
+    --white: #FFFFFF;
+    --grey: #F5F5F5;
+    --border: #E0E0E0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text);
+    background: var(--white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(6,46,48,0.97);
+    backdrop-filter: blur(12px);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-size: 1.4rem; font-weight: 700; color: var(--white);
+    letter-spacing: -0.02em; text-decoration: none;
+  }
+  .nav-logo span { color: var(--teal-pale); }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: rgba(255,255,255,0.75); text-decoration: none;
+    font-size: 0.9rem; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--teal-light); color: var(--white) !important;
+    padding: 0.5rem 1.25rem; border-radius: 6px;
+    font-weight: 500; font-size: 0.875rem !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: #24b589 !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    background: var(--teal-dark);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 7rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-doodles {
+    position: absolute; inset: 0;
+    opacity: 0.06;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='8' fill='none' stroke='%239FE1CB' stroke-width='1.5'/%3E%3Cpath d='M30 22 L30 10 M38 30 L50 30 M22 30 L10 30 M30 38 L30 50' stroke='%239FE1CB' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-size: 60px 60px;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 760px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(159,225,203,0.15);
+    border: 1px solid rgba(159,225,203,0.3);
+    color: var(--teal-pale);
+    padding: 0.4rem 1rem; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 500;
+    margin-bottom: 2rem;
+    letter-spacing: 0.04em;
+  }
+  .hero-badge::before { content: '●'; font-size: 0.5rem; }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--teal-pale);
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: rgba(255,255,255,0.7);
+    max-width: 580px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+  .hero-actions {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--teal-light);
+    color: var(--white);
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 600; font-size: 1rem;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: #24b589; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 500; font-size: 1rem;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    transition: border-color 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.6); transform: translateY(-1px); }
+  .hero-tagline {
+    margin-top: 3rem;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--teal-pale);
+    padding: 1.25rem 2rem;
+    display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-size: 1.5rem; font-weight: 700; color: var(--teal-dark);
+    display: block; line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.75rem; color: var(--teal); font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* SECTIONS */
+  section { padding: 5rem 2rem; }
+  .container { max-width: 1080px; margin: 0 auto; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--teal);
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700; letter-spacing: -0.02em;
+    color: var(--teal-dark); margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  .section-body {
+    font-size: 1.05rem; color: var(--text-mid);
+    max-width: 580px; line-height: 1.75;
+  }
+
+  /* PROBLEM */
+  .problem { background: var(--grey); }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .problem-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+  }
+  .problem-stat {
+    font-size: 2.2rem; font-weight: 700;
+    color: var(--crimson); display: block; margin-bottom: 0.5rem;
+  }
+  .problem-label {
+    font-size: 0.9rem; color: var(--text-mid); line-height: 1.6;
+  }
+
+  /* HOW IT WORKS */
+  .how { background: var(--white); }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem; margin-top: 3rem;
+  }
+  .step {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1rem;
+  }
+  .step-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: var(--teal-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .step-num {
+    font-size: 0.7rem; font-weight: 700; color: var(--teal-pale);
+    letter-spacing: 0.1em;
+  }
+  .step h3 {
+    font-size: 1rem; font-weight: 600; color: var(--teal-dark);
+    margin-bottom: 0.25rem;
+  }
+  .step p { font-size: 0.9rem; color: var(--text-mid); line-height: 1.65; }
+
+  /* SOS DEMO */
+  .sos-demo { background: var(--teal-dark); padding: 5rem 2rem; }
+  .sos-content {
+    max-width: 1080px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+  }
+  .sos-text .section-title { color: var(--white); }
+  .sos-text .section-label { color: var(--teal-pale); }
+  .sos-text .section-body { color: rgba(255,255,255,0.7); }
+  .sos-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 2rem; }
+  .tl-item {
+    display: flex; gap: 1rem; padding-bottom: 1.25rem;
+    border-left: 2px solid rgba(159,225,203,0.3);
+    padding-left: 1.25rem; margin-left: 0.5rem;
+    position: relative;
+  }
+  .tl-item::before {
+    content: '';
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--teal-pale);
+    position: absolute; left: -6px; top: 4px;
+  }
+  .tl-time {
+    font-size: 0.7rem; font-weight: 700; color: var(--teal-pale);
+    font-family: monospace; min-width: 56px; padding-top: 2px;
+  }
+  .tl-body h4 { font-size: 0.9rem; font-weight: 600; color: var(--white); margin-bottom: 0.15rem; }
+  .tl-body p { font-size: 0.8rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+  /* PHONE MOCKUP */
+  .phone-wrap { display: flex; justify-content: center; }
+  .phone {
+    width: 240px; height: 480px; border-radius: 36px;
+    background: var(--crimson);
+    border: 3px solid rgba(255,255,255,0.15);
+    padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .phone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(255,100,100,0.2) 0%, transparent 70%);
+  }
+  .phone-notch {
+    width: 80px; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.2); margin-bottom: 1rem;
+  }
+  .phone-sos-label {
+    font-size: 0.65rem; letter-spacing: 0.2em; font-weight: 700;
+    color: rgba(255,255,255,0.6); text-transform: uppercase;
+  }
+  .phone-sos-name {
+    font-size: 1.3rem; font-weight: 700; color: var(--white);
+    text-align: center; line-height: 1.3;
+  }
+  .phone-sos-sub {
+    font-size: 0.7rem; color: rgba(255,255,255,0.7); text-align: center;
+  }
+  .phone-pulse {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .phone-pulse::before, .phone-pulse::after {
+    content: '';
+    position: absolute; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    animation: pulse 2s infinite;
+  }
+  .phone-pulse::before { width: 120px; height: 120px; }
+  .phone-pulse::after { width: 140px; height: 140px; animation-delay: 0.5s; }
+  @keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    100% { transform: scale(1.1); opacity: 0; }
+  }
+  .pulse-inner {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .phone-contacts {
+    width: 100%; display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .contact-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 0.4rem 0.6rem;
+  }
+  .contact-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #4ade80; flex-shrink: 0;
+  }
+  .contact-name {
+    font-size: 0.7rem; font-weight: 500; color: var(--white); flex: 1;
+  }
+  .contact-status { font-size: 0.6rem; color: rgba(255,255,255,0.6); }
+
+  /* FEATURES */
+  .features { background: var(--teal-bg); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .feature-card {
+    background: var(--white);
+    border-radius: 12px; padding: 1.75rem;
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(13,115,119,0.08);
+  }
+  .feature-icon {
+    font-size: 1.75rem; margin-bottom: 1rem; display: block;
+  }
+  .feature-card h3 {
+    font-size: 1rem; font-weight: 600; color: var(--teal-dark);
+    margin-bottom: 0.5rem;
+  }
+  .feature-card p { font-size: 0.875rem; color: var(--text-mid); line-height: 1.65; }
+  .feature-tag {
+    display: inline-block; margin-top: 0.75rem;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem; border-radius: 4px;
+  }
+  .tag-ai { background: rgba(83,74,183,0.1); color: var(--purple); }
+  .tag-safe { background: rgba(163,45,45,0.08); color: var(--crimson); }
+  .tag-comm { background: rgba(13,115,119,0.1); color: var(--teal); }
+
+  /* FOUNDER */
+  .founder { background: var(--white); }
+  .founder-content {
+    display: grid; grid-template-columns: 1fr 1.6fr; gap: 4rem; align-items: start;
+  }
+  .founder-quote {
+    font-size: 1.15rem; line-height: 1.8; color: var(--text-mid);
+    font-style: italic;
+    border-left: 3px solid var(--teal-pale);
+    padding-left: 1.5rem;
+  }
+  .founder-quote strong { color: var(--teal-dark); font-style: normal; }
+  .founder-name {
+    margin-top: 1.5rem;
+    font-size: 0.9rem; font-weight: 600; color: var(--teal-dark);
+  }
+  .founder-role { font-size: 0.8rem; color: var(--text-light); }
+  .founder-left .section-title { font-size: 1.8rem; }
+
+  /* AI */
+  .ai-section { background: var(--grey); }
+  .ai-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .ai-card {
+    background: var(--white); border-radius: 12px;
+    padding: 1.5rem; border: 1px solid var(--border);
+  }
+  .ai-model {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 0.5rem;
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px;
+  }
+  .model-gemini { background: rgba(83,74,183,0.1); color: var(--purple); }
+  .model-gemma  { background: rgba(13,115,119,0.1); color: var(--teal); }
+  .model-veo    { background: rgba(186,117,23,0.1); color: var(--amber); }
+  .ai-card h3 { font-size: 0.95rem; font-weight: 600; color: var(--teal-dark); margin-bottom: 0.4rem; }
+  .ai-card p  { font-size: 0.85rem; color: var(--text-mid); line-height: 1.6; }
+
+  /* WAITLIST */
+  .waitlist {
+    background: var(--teal-dark); padding: 5rem 2rem; text-align: center;
+  }
+  .waitlist h2 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700; color: var(--white);
+    letter-spacing: -0.02em; margin-bottom: 1rem;
+  }
+  .waitlist p { font-size: 1rem; color: rgba(255,255,255,0.65); margin-bottom: 2.5rem; }
+  .waitlist-form {
+    display: flex; gap: 0.75rem; justify-content: center;
+    flex-wrap: wrap; max-width: 480px; margin: 0 auto;
+  }
+  .waitlist-form input {
+    flex: 1; min-width: 220px;
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: var(--white); font-size: 1rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .waitlist-form input::placeholder { color: rgba(255,255,255,0.4); }
+  .waitlist-form input:focus { border-color: var(--teal-pale); }
+  .waitlist-form button {
+    padding: 0.875rem 1.75rem;
+    background: var(--teal-light); color: var(--white);
+    border: none; border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .waitlist-form button:hover { background: #24b589; }
+  .waitlist-note {
+    margin-top: 1rem; font-size: 0.8rem; color: rgba(255,255,255,0.35);
+  }
+
+  /* FOOTER */
+  footer {
+    background: #040F10; padding: 2.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+  .footer-logo span { color: var(--teal-pale); }
+  .footer-tagline {
+    font-size: 0.8rem; color: rgba(255,255,255,0.35);
+    font-style: italic;
+  }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a { font-size: 0.8rem; color: rgba(255,255,255,0.4); text-decoration: none; }
+  .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+  /* HERWORLD */
+  .herworld {
+    background: linear-gradient(135deg, #1a0f00 0%, #2d1800 50%, #0a1f20 100%);
+    padding: 5rem 2rem;
+  }
+  .herworld-inner {
+    display: grid; grid-template-columns: 1.4fr 1fr;
+    gap: 4rem; align-items: center;
+  }
+  .herworld-tiles {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem; margin-top: 2rem;
+  }
+  .hw-tile {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(186,117,23,0.2);
+    border-radius: 10px; padding: 1rem 1.1rem;
+    transition: background 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .hw-tile::after {
+    content: '🔒';
+    position: absolute; top: 0.6rem; right: 0.7rem;
+    font-size: 0.7rem; opacity: 0.4;
+  }
+  .hw-tile:hover { background: rgba(255,255,255,0.09); }
+  .hw-tile-icon { font-size: 1.4rem; display: block; margin-bottom: 0.4rem; }
+  .hw-tile-name {
+    font-size: 0.875rem; font-weight: 600;
+    color: var(--amber); margin-bottom: 0.2rem;
+  }
+  .hw-tile-desc { font-size: 0.75rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+  .herworld-counter { display: flex; justify-content: center; }
+  .hw-counter-box {
+    background: rgba(186,117,23,0.12);
+    border: 1.5px solid rgba(186,117,23,0.3);
+    border-radius: 16px; padding: 2.5rem 2rem;
+    text-align: center; width: 100%;
+  }
+  .hw-counter-num {
+    font-size: 4rem; font-weight: 700;
+    color: var(--amber); line-height: 1;
+    margin-bottom: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .hw-counter-label {
+    font-size: 0.9rem; font-weight: 500;
+    color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;
+  }
+  .hw-counter-sub { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .sos-content { grid-template-columns: 1fr; gap: 2.5rem; }
+    .phone-wrap { order: -1; }
+    .founder-content { grid-template-columns: 1fr; gap: 2rem; }
+    .ai-grid { grid-template-columns: 1fr; }
+    .herworld-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+    .herworld-tiles { grid-template-columns: 1fr; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Her<span>App</span></a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#ai">AI</a>
+    <a href="#founder">Our story</a>
+    <a href="#herworld">HerWorld</a>
+    <a href="#waitlist" class="nav-cta">Join waitlist</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-doodles"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Built for African women, by an African woman</div>
+    <h1>Safety shouldn't depend on <em>a good signal</em></h1>
+    <p class="hero-sub">HerApp is a real-time personal safety ecosystem — one hold of a button alerts your trusted circle, shares your live location, and begins recording evidence in under half a second, with or without internet.</p>
+    <div class="hero-actions">
+      <a href="#waitlist" class="btn-primary">Join the waitlist</a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+    <p class="hero-tagline">Because safety shouldn't depend on a good signal — and it shouldn't depend on where you live.</p>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-num">170</span>
+    <span class="stat-label">Women killed in Kenya in 2024 — one every other day</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">34%</span>
+    <span class="stat-label">Kenyan women have experienced physical violence since age 15</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">&lt;500ms</span>
+    <span class="stat-label">Time for HerApp SOS to fire</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">0G</span>
+    <span class="stat-label">Internet needed for emergency alerts</span>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-label">The problem</div>
+    <h2 class="section-title">The tools exist. They just weren't built for her.</h2>
+    <p class="section-body">Every major safety app was designed for Western infrastructure — reliable 4G, stable GPS, responsive emergency services. None of them work offline. None of them were built for a woman in Nairobi catching a 5am matatu because the rent is due.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="problem-stat">170</span>
+        <div class="problem-label">Women killed in Kenya in 2024 — the deadliest year on record. One woman every other day. 75% killed by someone they knew. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: Silencing Women Project, Odipo Dev 2025</em></div>
+      </div>
+      <div class="problem-card">
+        <span class="problem-stat">34%</span>
+        <div class="problem-label">Of Kenyan women have experienced physical violence since age 15. Over 40% have experienced physical or sexual violence from an intimate partner. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: KDHS 2022</em></div>
+      </div>
+      <div class="problem-card">
+        <span class="problem-stat">72%</span>
+        <div class="problem-label">Of femicides happen inside the victim's home — the place that should be safest. The danger is rarely a stranger. It is someone she trusted. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: Silencing Women Project, Odipo Dev 2025</em></div>
+      </div>
+      <div class="problem-card">
+        <span class="problem-stat">4 yrs</span>
+        <div class="problem-label">Average wait for a verdict in a femicide case in Kenya. Laws exist. Enforcement is the weakest link. Justice delayed is justice denied. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: Africa Uncensored / Silencing Women 2025</em></div>
+      </div>
+      <div class="problem-card">
+        <span class="problem-stat">13/47</span>
+        <div class="problem-label">Kenyan counties with an operational GBV Recovery Centre by 2023. 34 counties have no dedicated facility for survivors. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: NGEC-JICA GBV Elimination Project 2024</em></div>
+      </div>
+      <div class="problem-card">
+        <span class="problem-stat">90%</span>
+        <div class="problem-label">Of students in Nairobi tertiary institutions have witnessed technology-facilitated GBV. 64% of female students have experienced it personally. <em style="font-size:0.75rem; color:#888; display:block; margin-top:0.4rem;">Source: UNFPA Kenya / CCGD 2024</em></div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTABILITY MESSAGE -->
+    <div style="margin-top:3rem; padding:2rem 2.5rem; background:var(--teal-dark); border-radius:16px; color:var(--white);">
+      <div style="font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--teal-pale); margin-bottom:1rem;">HerApp's deeper mission</div>
+      <h3 style="font-size:1.3rem; font-weight:700; line-height:1.4; margin-bottom:1rem; color:var(--white);">GBV is a societal problem — created by society, and solvable by society.</h3>
+      <p style="font-size:0.95rem; color:rgba(255,255,255,0.7); line-height:1.75; max-width:720px;">HerApp doesn't just help women survive dangerous situations — it creates accountability structures that make those situations harder to ignore. When an SOS fires and a contact is notified, that alert is timestamped and logged. When a danger zone is reported by hundreds of women, it cannot be dismissed as an individual complaint. When a police officer is reached through the app, their response — or lack of it — becomes part of a documented record. <strong style="color:var(--teal-pale);">HerApp holds the right people accountable for the things they are responsible for.</strong> Not through anger — through data, community, and an evidence trail that the justice system cannot look away from.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="container">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Four triggers. One result. She's never alone.</h2>
+    <p class="section-body">HerApp gives a woman four ways to call for help — designed for the moment she is in, not the moment we imagine she might be in.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-icon">👆</div>
+        <div>
+          <div class="step-num">PRIMARY</div>
+          <h3>2-second hold</h3>
+          <p>Hold the SOS button. A crimson ring fills. Alert fires to her trusted circle in under 500 milliseconds — simultaneously via push and SMS.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🔘</div>
+        <div>
+          <div class="step-num">SECONDARY</div>
+          <h3>Volume button sequence</h3>
+          <p>Press volume down 3 times rapidly. SOS fires without touching the screen — for situations where looking at the phone would be dangerous.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">🎤</div>
+        <div>
+          <div class="step-num">TERTIARY</div>
+          <h3>Panic phrase — opt in</h3>
+          <p>A custom phrase she sets. Detected on-device by Gemma AI — no internet needed, no server required. Screen stays dark. SOS fires silently.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-icon">⌚</div>
+        <div>
+          <div class="step-num">AUTOMATIC</div>
+          <h3>Journey timeout</h3>
+          <p>She starts a journey. If she doesn't arrive within ETA + 15 minutes and doesn't respond to a check-in, SOS fires automatically on her behalf.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOS IN ACTION -->
+<section class="sos-demo">
+  <div class="sos-content">
+    <div class="sos-text">
+      <div class="section-label">SOS in action</div>
+      <h2 class="section-title">From trigger to alert in under 500 milliseconds.</h2>
+      <p class="section-body">Everything fires simultaneously. No sequential fallbacks. No waiting to see if push worked before trying SMS. Both, always, immediately.</p>
+      <div class="sos-timeline">
+        <div class="tl-item">
+          <div class="tl-time">T+0ms</div>
+          <div class="tl-body"><h4>SOS confirmed</h4><p>Full crimson screen. Haptic feedback. State persisted locally — survives any app crash.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">T+100ms</div>
+          <div class="tl-body"><h4>Four actions fire at once</h4><p>Location captured, audio recording begins, database updated, alerts dispatched.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">T+200ms</div>
+          <div class="tl-body"><h4>FCM push sent</h4><p>High priority — bypasses silent mode and Do Not Disturb on every contact's device.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">T+300ms</div>
+          <div class="tl-body"><h4>SMS sent in parallel</h4><p>Africa's Talking. Not a fallback — fires simultaneously. Works on any phone, any network.</p></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">T+30s</div>
+          <div class="tl-body"><h4>Evidence in the cloud</h4><p>First encrypted audio chunk uploaded. Even if the phone is seized, evidence is already preserved.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div style="text-align:center">
+          <div class="phone-sos-label">Emergency active</div>
+          <div class="phone-sos-name">Amina Kariuki</div>
+          <div class="phone-sos-sub">Nairobi, Kenya · 2 min 14s</div>
+        </div>
+        <div class="phone-pulse">
+          <div class="pulse-inner">🚨</div>
+        </div>
+        <div class="phone-contacts">
+          <div class="contact-row">
+            <div class="contact-dot"></div>
+            <div class="contact-name">Grace Njoki</div>
+            <div class="contact-status">En route ↗</div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-dot" style="background:#facc15"></div>
+            <div class="contact-name">Mama</div>
+            <div class="contact-status">Notified</div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-dot" style="background:#facc15"></div>
+            <div class="contact-name">Zawadi</div>
+            <div class="contact-status">Notified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Built for the real world. Not the ideal one.</h2>
+    <p class="section-body">Every feature in HerApp exists because a real scenario required it. Not because it was a good idea in a meeting.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>Panic PIN</h3>
+        <p>A PIN that appears to unlock the phone normally — while silently triggering SOS. For the moment an abuser demands she hand over her phone.</p>
+        <span class="feature-tag tag-safe">Critical safety</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗺️</span>
+        <h3>Community safety map</h3>
+        <p>Incident reports, danger zones, and safe zones — built from women's real experiences. Gets more accurate with every woman who joins.</p>
+        <span class="feature-tag tag-comm">Community</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <h3>Lock screen emergency profile</h3>
+        <p>Medical info — blood type, allergies, conditions — always visible on the lock screen. With a QR code any paramedic can scan. No unlock needed.</p>
+        <span class="feature-tag tag-safe">Critical safety</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⭐</span>
+        <h3>HerScore</h3>
+        <p>Community safety ratings for specific locations — time-aware. A petrol station rated 4.6★ at noon and 2.4★ at midnight. Powered by Gemini.</p>
+        <span class="feature-tag tag-ai">AI-powered</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🤝</span>
+        <h3>Community SOS broadcast</h3>
+        <p>No personal circle? The app broadcasts to verified HerApp users within 500m — expanding to 2km. No woman is ever alone because she has no contacts.</p>
+        <span class="feature-tag tag-comm">Community</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💬</span>
+        <h3>AI hotline guide</h3>
+        <p>She describes what she's going through — in English or Swahili. Gemini listens and surfaces the right hotline, shelter, or counselling resource immediately.</p>
+        <span class="feature-tag tag-ai">AI-powered</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔗</span>
+        <h3>Public journey link</h3>
+        <p>A shareable link anyone can open — no HerApp needed. Drop it in a WhatsApp before getting into a taxi. Live location, no login, auto-expires on arrival.</p>
+        <span class="feature-tag tag-comm">Journey</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📵</span>
+        <h3>Offline-first SOS</h3>
+        <p>No internet? SOS fires via native SMS directly from the device. Works on 2G, works with no data, works when HerApp's servers are unreachable.</p>
+        <span class="feature-tag tag-safe">Critical safety</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏱️</span>
+        <h3>Check-in timer</h3>
+        <p>She sets a countdown for any potentially uncomfortable situation. No response when the timer expires — SOS fires automatically on her behalf.</p>
+        <span class="feature-tag tag-safe">Safety</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI -->
+<section class="ai-section" id="ai">
+  <div class="container">
+    <div class="section-label">Powered by Google AI</div>
+    <h2 class="section-title">AI that anticipates — not just responds.</h2>
+    <p class="section-body">HerApp uses three Google DeepMind models across eight distinct features. AI is central to how the product works — not decorative.</p>
+    <div class="ai-grid">
+      <div class="ai-card">
+        <span class="ai-model model-gemini">Gemini — cloud</span>
+        <h3>Community pattern recognition</h3>
+        <p>Identifies danger zones before they become headlines — analysing incident patterns, times, and language across the community safety map.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemini">Gemini — cloud</span>
+        <h3>Proactive resource intelligence</h3>
+        <p>Surfaces the right hotline, shelter, or counselling service the moment context suggests she might need it — before she has to think to look.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemini">Gemini — cloud</span>
+        <h3>Safe route intelligence</h3>
+        <p>Learns from every incident reported by every woman in the network, making each journey safer than the last.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemma">Gemma — on device</span>
+        <h3>Panic phrase detection — offline</h3>
+        <p>Processes voice on-device with zero internet. No server, no latency, no cloud dependency. Works even when the network is completely gone.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemma">Gemma — on device</span>
+        <h3>Trusted circle anomaly detection</h3>
+        <p>Identifies passive observer patterns in circle behaviour — detecting surveillance intent before the woman is even aware it's happening.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemma">Gemma — on device</span>
+        <h3>Swahili language processing</h3>
+        <p>Native Swahili understanding — not just translation. Reaches women who would never use an English-only safety tool.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-gemini">Gemini — cloud</span>
+        <h3>HerScore intelligence</h3>
+        <p>Time-aware, volume-weighted safety ratings for specific locations. A score that changes as the day changes — because danger does too.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ai-model model-veo">Veo — cloud</span>
+        <h3>Emergency profile video understanding</h3>
+        <p>Converts pre-recorded medical video messages into structured text — so a paramedic in a moving ambulance never misses critical instructions.</p>
+      </div>
+      <div class="ai-card" style="background: var(--teal-dark); border-color: var(--teal-dark);">
+        <h3 style="color: var(--white); margin-bottom: 0.75rem;">Already Google-native</h3>
+        <p style="color: rgba(255,255,255,0.65); font-size: 0.85rem; line-height: 1.65;">Firebase · Google Maps · FCM · Google Cloud Storage · Smile Identity. Adding Gemini and Gemma is a natural extension — not an integration project.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="founder" id="founder">
+  <div class="container">
+    <div class="founder-content">
+      <div class="founder-left">
+        <div class="section-label">Why we exist</div>
+        <h2 class="section-title">This started with a grandmother catching the early bus.</h2>
+      </div>
+      <div>
+        <p class="founder-quote">
+          "I grew up in a household of women. My grandmother and mother were the breadwinners — they carried everything. And carrying everything meant leaving before the sun came up and coming home after it went down. <strong>Until the sun was out, I used to lie awake worrying about whether they had gotten to work.</strong> I was a little girl in primary school. I felt completely helpless.
+          <br><br>
+          My aunt was held at gunpoint near our home. That is not a statistic. That is my family.
+          <br><br>
+          I am 19 now, studying at JKUAT. I watch women navigate danger every single day with no tools built for them. <strong>HerApp is the answer to a question I have been asking my whole life. I am building it because I know exactly what it feels like to be the person who cannot help — and I refuse to stay that person.</strong>"
+        </p>
+        <div class="founder-name">Nicole Owili</div>
+        <div class="founder-role">Founder, HerApp Technologies · JKUAT, Nairobi</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HERWORLD -->
+<section class="herworld" id="herworld">
+  <div class="container">
+    <div class="herworld-inner">
+      <div class="herworld-text">
+        <div class="section-label" style="color:var(--amber);">Coming soon</div>
+        <h2 class="section-title" style="color:var(--white);">HerWorld — the economy built on safety.</h2>
+        <p class="section-body" style="color:rgba(255,255,255,0.65);">HerApp's safety infrastructure becomes the foundation for something bigger. HerWorld is a women-only marketplace and services ecosystem — every provider verified, every transaction safe, every experience built on the trust HerApp's community already earned.</p>
+        <div class="herworld-tiles">
+          <div class="hw-tile">
+            <span class="hw-tile-icon">🚗</span>
+            <div class="hw-tile-name">HerRide</div>
+            <div class="hw-tile-desc">Women drivers only. Every ride automatically tracked.</div>
+          </div>
+          <div class="hw-tile">
+            <span class="hw-tile-icon">🍽️</span>
+            <div class="hw-tile-name">Safe Eats</div>
+            <div class="hw-tile-desc">Food delivery from HerApp-certified restaurants.</div>
+          </div>
+          <div class="hw-tile">
+            <span class="hw-tile-icon">🛍️</span>
+            <div class="hw-tile-name">HerMarket</div>
+            <div class="hw-tile-desc">Women-owned businesses, safely discovered.</div>
+          </div>
+          <div class="hw-tile">
+            <span class="hw-tile-icon">🤝</span>
+            <div class="hw-tile-name">Allies</div>
+            <div class="hw-tile-desc">Verified community responders. Piloted with institutions first.</div>
+          </div>
+          <div class="hw-tile">
+            <span class="hw-tile-icon">🏠</span>
+            <div class="hw-tile-name">Safe Houses</div>
+            <div class="hw-tile-desc">Verified homes women can reach during an emergency.</div>
+          </div>
+          <div class="hw-tile">
+            <span class="hw-tile-icon">💼</span>
+            <div class="hw-tile-name">HerCareer</div>
+            <div class="hw-tile-desc">Women professionals across every field — rated, verified, and discovered by community.</div>
+          </div>
+        </div>
+        <a href="#waitlist" class="btn-primary" style="margin-top:2rem;display:inline-block;">Join the HerWorld waitlist</a>
+      </div>
+      <div class="herworld-counter">
+        <div class="hw-counter-box">
+          <div class="hw-counter-num">0</div>
+          <div class="hw-counter-label">Women waiting for HerWorld</div>
+          <div class="hw-counter-sub">Be the first in your city.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section class="waitlist" id="waitlist">
+  <div class="container">
+    <h2>Be the first to know when HerApp launches.</h2>
+    <p>Join women across Kenya who are waiting for a safety tool finally built for them.</p>
+    <div class="waitlist-form">
+      <input type="email" placeholder="your@email.com">
+      <button type="button">Join waitlist</button>
+    </div>
+    <div class="waitlist-note">No spam. Just a message when we launch. Because safety shouldn't depend on a good signal.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Her<span>App</span></div>
+  <div class="footer-tagline">Real-time personal safety for African women.</div>
+  <div class="footer-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#herworld">HerWorld</a>
+    <a href="#founder">Our story</a>
+    <a href="#waitlist">Join waitlist</a>
+  </div>
+</footer>
+
+<script>
+document.querySelector('.waitlist-form button').addEventListener('click', function() {
+  const input = document.querySelector('.waitlist-form input');
+  const email = input.value.trim();
+  if (email && email.includes('@')) {
+    input.value = '';
+    this.textContent = 'You\'re in ✓';
+    this.style.background = '#24b589';
+    setTimeout(() => {
+      this.textContent = 'Join waitlist';
+      this.style.background = '';
+    }, 3000);
+  } else {
+    input.style.borderColor = '#ef4444';
+    input.placeholder = 'Please enter a valid email';
+    setTimeout(() => {
+      input.style.borderColor = '';
+      input.placeholder = 'your@email.com';
+    }, 2000);
+  }
+});
+
+// Animate counter when HerWorld section comes into view
+const counterEl = document.querySelector('.hw-counter-num');
+let counted = false;
+const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && !counted) {
+    counted = true;
+    let count = 0;
+    const target = 247;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+      count = Math.min(count + step, target);
+      counterEl.textContent = count.toLocaleString();
+      if (count >= target) clearInterval(timer);
+    }, 30);
+  }
+}, { threshold: 0.3 });
+if (counterEl) observer.observe(counterEl);
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
